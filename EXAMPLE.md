@@ -232,4 +232,4 @@ This section explains how to test the demo’s functionality, starting with the 
 
 ## License
 
-Copyright (c) 2025 Michael Abler. Licensed under the [Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/). You may use and share this document for non-commercial purposes, provided you give appropriate credit and retain the copyright notice. No modifications or derivative works are permitted. See [LICENSE.md](../LICENSE.md) for details.
+Copyright (c) 2025 Michael Abler. Licensed under the [Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/). You may use and share this document for non-commercial purposes, provided you give appropriate credit and retain the copyright notice. No modifications or derivative works are permitted. See [LICENSE.md](/LICENSE.md) for details.
