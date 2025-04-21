@@ -25,7 +25,7 @@
  * SOFTWARE.
  *
  * @author Michael Abler
- * @see https://github.com/MichaelAblerCode/nextjs_essentials_pagesrouter_rendering
+ * @see https://github.com/MichaelAbler/nextjs_essentials_pagesrouter_rendering
  */
 
 import StudentList from "../../../../components/StudentList";

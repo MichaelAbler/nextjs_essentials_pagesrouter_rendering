@@ -25,7 +25,7 @@ To run the Student Directory demo, ensure you have the following:
 - **Repository**: Clone the project using:
 
 ```bash
-  git clone https://github.com/MichaelAblerCode/nextjs_essentials_pagesrouter_rendering.git
+  git clone https://github.com/MichaelAbler/nextjs_essentials_pagesrouter_rendering.git
   cd next_pagesrouter_ssr_ssg_isr_csr
 ```
 

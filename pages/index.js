@@ -25,7 +25,7 @@
  * SOFTWARE.
  *
  * @author Michael Abler
- * @see https://github.com/MichaelAblerCode/nextjs_essentials_pagesrouter_rendering
+ * @see https://github.com/MichaelAbler/nextjs_essentials_pagesrouter_rendering
  */
 
 import Link from "next/link";
@@ -51,7 +51,7 @@ export default function IndexPage() {
       <p style={{ marginBottom: "16px" }}>
         Welcome to the Student Directory demo showcasing{" "}
         <a
-          href="https://github.com/MichaelAblerCode/nextjs_essentials_pagesrouter_rendering/blob/master/README.md"
+          href="https://github.com/MichaelAbler/nextjs_essentials_pagesrouter_rendering/blob/master/README.md"
           style={linkStyle}
           target="_blank"
           rel="noopener noreferrer"
@@ -229,7 +229,7 @@ export default function IndexPage() {
         <p>
           See the{" "}
           <a
-            href="https://github.com/MichaelAblerCode/nextjs_essentials_pagesrouter_rendering"
+            href="https://github.com/MichaelAbler/nextjs_essentials_pagesrouter_rendering"
             target="_blank"
             style={linkStyle}
             rel="noopener noreferrer"
