@@ -360,4 +360,4 @@ Copyright (c) 2025 Michael Abler. Licensed under the [Creative Commons Attributi
 
 ## References
 
-- See example implementation: [Next.js Student Directory: Example Implementation](./docs/EXAMPLE.md)
+- See example implementation: [Next.js Student Directory: Example Implementation](/EXAMPLE.md)
