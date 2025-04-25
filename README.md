@@ -1370,7 +1370,7 @@ export default function Dashboard() {
 }
 ```
 
--**Serving a Downloadable PDF:**
+- **Serving a Downloadable PDF:**
 
 ```javascript
 // pages/resources.js
@@ -1386,7 +1386,7 @@ export default function Resources() {
 }
 ```
 
--**Serving a JSON File for Client-Side Fetching:**
+- **Serving a JSON File for Client-Side Fetching:**
 
 ```javascript
 // pages/dashboard.js
