@@ -618,7 +618,8 @@ export default function Home({ postIds }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Manually prefetch dynamic routes to complement <Link> by enabling immediate preloading and supporting off-screen or SSG fallback routes
+    // Manually prefetch dynamic routes to complement <Link> by enabling
+    // immediate preloading and supporting off-screen or SSG fallback routes
     postIds.forEach((id) => router.prefetch(`/posts/${id}`));
   }, [router, postIds]);
 
@@ -883,12 +884,36 @@ Summary of best practices for using `next/router` effectively in Next.js Pages R
 
 ### 7.8 Use Cases in Context
 
-- **Dynamic Filtering**: Use shallow routing to update query parameters for search filters in e-commerce (e.g., `/products?category=electronics`, [Section 7.5](#75-client-side-navigation-optimizations)).
-- **Conditional Redirects**: Redirect users in `[id].js` if `router.query.id` is invalid, complementing SSR validation ([Section 1](#1-server-side-rendering-ssr---dynamic-urls)).
-- **Loading States**: Show spinners during navigation for dynamic routes (e.g., `[...category].js`) using `router.events` ([Section 7.3](#73-route-change-events)).
-- **Preloading Products**: Prefetch product pages (`/products/[id]`) in an e-commerce app for faster navigation ([Section 7.4](#74-dynamic-route-preloading)).
-- **Pagination**: Implement next/previous buttons with shallow routing for blog lists (SSG or ISR, [Section 7.5](#75-client-side-navigation-optimizations)).
-- **Lazy-Loading Dashboards**: Use `next/dynamic` for CSR dashboards to optimize dynamic route navigation ([Section 7.5](#75-client-side-navigation-optimizations)).
+The following use cases demonstrate how to apply [`useRouter`](#71-the-userouter-hook), [programmatic navigation](#72-programmatic-navigation), [route change events](#73-route-change-events), [dynamic route preloading](#74-dynamic-route-preloading), [navigation optimizations](#75-client-side-navigation-optimizations), and the [`Link` component](#76-the-link-component) in real-world Next.js applications, integrating with rendering methods (SSR, SSG, ISR, CSR) and routing patterns (static, dynamic, catch-all).
+
+1. **Dynamic Filtering and Pagination ([7.2](#72-programmatic-navigation), [7.5](#75-client-side-navigation-optimizations))**:
+
+   - **Scenario**: Use shallow routing to update query parameters for search filters or pagination in e-commerce or blog lists.
+   - **Rendering/Routing**: ISR for `/products`, SSG for `/blog`.
+
+2. **Conditional Redirects ([7.1](#71-the-userouter-hook))**:
+
+   - **Scenario**: Redirect users in `[id].js` if `router.query.id` is invalid, complementing SSR validation.
+   - **Rendering/Routing**: SSR for `/posts/[id]`.
+
+3. **Loading States ([7.3](#73-route-change-events))**:
+
+   - **Scenario**: Show spinners during navigation for dynamic or catch-all routes using `router.events`.
+   - **Rendering/Routing**: SSR for `[...category].js`.
+
+4. **Preloading Products ([7.4](#74-dynamic-route-preloading))**:
+
+   - **Scenario**: Prefetch product pages (`/products/[id]`) in an e-commerce app for faster navigation.
+   - **Rendering/Routing**: ISR for `/products/[id]`.
+
+5. **Lazy-Loading Dashboards ([7.5](#75-client-side-navigation-optimizations))**:
+
+   - **Scenario**: Use `next/dynamic` for CSR dashboards to optimize dynamic route navigation.
+   - **Rendering/Routing**: CSR for `/dashboard/[id]`.
+
+6. **Blog Post Navigation ([7.6](#76-the-link-component))**:
+   - **Scenario**: Use `Link` for client-side navigation to static pages or dynamic blog posts, leveraging prefetching.
+   - **Rendering/Routing**: SSG for `/posts/[slug]`, static for `/about`.
 
 ## 8. Customizing Application and Asset Handling
 
@@ -896,7 +921,7 @@ In the Next.js Pages Router, `_document.js` and `_app.js` are special files that
 
 ### 8.1 Customizing \_document.js
 
-**Purpose:** `_document.js` customizes the HTML document structure (`<html>`, `<head>`, `<body>`) for all pages rendered by Next.js, affecting SSR, SSG, and ISR output. It runs on the server during initial rendering (and on the client for hydration in some cases), making it ideal for adding global `<meta>` tags, scripts, or custom attributes.
+`_document.js` customizes the HTML document structure (`<html>`, `<head>`, `<body>`) for all pages rendered by Next.js, affecting SSR, SSG, and ISR output. It runs on the server during initial rendering (and on the client for hydration in some cases), making it ideal for adding global `<meta>` tags, scripts, or custom attributes.
 
 **Key Features:**
 
@@ -963,13 +988,13 @@ export default function Document() {
 
 ### 8.2 Customizing \_app.js
 
-**Purpose:** `_app.js` customizes the application’s page initialization and rendering process by wrapping every page component. It runs on both the server (for SSR, SSG, ISR) and the client (for CSR and hydration), making it ideal for global layouts, state management, or route transition logic.
+`_app.js` customizes the application’s page initialization and rendering process by wrapping every page component. It runs on both the server (for SSR, SSG, ISR) and the client (for CSR and hydration), making it ideal for global layouts, state management, providers, and client-side logic like route change event handling [see Section 7.3](#73-route-change-events). By leveraging route change events (`routeChangeStart`, `routeChangeComplete`, `routeChangeError`, `beforeHistoryChange`), developers can manage navigation lifecycle events to enhance user experience with loading states, analytics, or cleanup logic.
 
 **Key Features:**
 
 - Extends the `App` component to override the default page rendering behavior.
-- Supports global layouts, CSS imports, and providers (e.g., Redux, ThemeProvider).
-- Enables client-side logic, such as handling route changes with `Router.events` or persisting state across pages.
+- Supports global layouts, CSS imports, and providers (e.g., Redux, custom providers like ThemeProvider or LoadingProvider).
+- Enables client-side logic, such as handling route changes with `Router.events` for navigation lifecycle tracking.
 - Receives `Component` (the page component) and `pageProps` (props from `getServerSideProps`, `getStaticProps`, etc.) as props.
 
 **Use Case:**
@@ -977,7 +1002,8 @@ export default function Document() {
 - Applying a consistent layout across all pages (e.g., navbar, footer).
 - Setting up global state management (e.g., Redux, Context API).
 - Adding global styles or CSS frameworks (e.g., Tailwind CSS).
-- Tracking page views or handling loading states during route transitions.
+- Handling route change events for loading spinners, analytics, or error management.
+- Tracking client side navigation for analytics or UI updates.
 
 **Example:**
 
@@ -985,34 +1011,54 @@ export default function Document() {
 // pages/_app.js
 import "../styles/globals.css"; // Global styles
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../components/Layout"; // Custom layout component
 import { ThemeProvider } from "styled-components";
+import { LoadingProvider } from "../context/LoadingContext"; // Custom context for loading state
 
 const theme = { colors: { primary: "#0070f3" } };
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Example: Track page views on route change
+  // Handle route change events for loading state and analytics
   useEffect(() => {
-    const handleRouteChange = (url) => {
-      console.log(`Navigated to: ${url}`);
-      // Example: Send to analytics
+    const handleStart = (url) => {
+      setIsLoading(true); // Indicate page component is loading
+      console.log(`Navigating to: ${url}`);
+    };
+    const handleComplete = (url) => {
+      setIsLoading(false); // Page component fully rendered
+      console.log(`Navigation complete: ${url}`);
+      // Example: Send page view to analytics
       window.gtag("event", "page_view", { page_path: url });
     };
+    const handleError = (err, url) => {
+      setIsLoading(false); // Reset loading on error
+      console.error(`Navigation error at ${url}: ${err}`);
+    };
 
-    router.events.on("routeChangeComplete", handleRouteChange);
+    // Subscribe to route change events
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleError);
+
+    // Cleanup event listeners on unmount
     return () => {
-      router.events.off("routeChangeComplete", handleRouteChange);
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleError);
     };
   }, [router.events]);
 
   return (
     <ThemeProvider theme={theme}>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      <LoadingProvider value={{ isLoading }}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </LoadingProvider>
     </ThemeProvider>
   );
 }
@@ -1024,28 +1070,120 @@ export default function MyApp({ Component, pageProps }) {
 - Use `Layout` components to wrap `Component` for consistent UI across routes.
 - `pageProps` includes data from `getServerSideProps`, `getStaticProps`, or `getInitialProps`, making it a central hub for passing props to pages.
 - Avoid heavy logic in `_app.js` to prevent performance bottlenecks.
+- Route change events are client-side only, not firing during server-side rendering.
 
 ### 8.3 Image Optimization with next/image
 
-**Purpose:** The `next/image` component optimizes image delivery in Next.js Pages Router applications, enhancing performance, SEO, and user experience across all rendering methods (SSR, SSG, ISR, CSR). It provides automatic lazy loading, responsive sizing, and format optimization (e.g., WebP), reducing bandwidth usage and improving page load times.
+The `next/image` component optimizes image delivery in Next.js Pages Router applications, enhancing performance, SEO, and user experience across all rendering methods (SSR, SSG, ISR, CSR). It provides automatic lazy loading, responsive sizing, and format optimization (e.g., WebP), reducing bandwidth usage and improving page load times.
 
 **Key Features:**
 
-- **Automatic Optimization:** Converts images to modern formats (e.g., WebP when supported) and generates multiple resolutions for responsive layouts.
+- **Automatic Optimization:** Converts images to modern formats (e.g., WebP when supported) and generates multiple resolutions for efficient delivery.
 - **Lazy Loading:** Defers offscreen image loading until they enter the viewport, improving initial page load performance.
 - **Responsive Images:** Supports `sizes` and `srcSet` for serving appropriately sized images based on device and viewport.
+- **SrcSet Generation:** Automatically creates a `srcSet` with multiple image sizes for responsive layouts, enabling browsers to select the optimal image based on device resolution and viewport.
 - **Placeholder Support:** Offers blur-up placeholders or empty placeholders for smoother visual loading.
 - **Integration with Rendering Methods:** Works seamlessly with SSR, SSG, ISR, and CSR, optimizing images for static and dynamic pages.
 
 **Key Props:**
 
-- `src`: The image source (e.g., `/images/photo.jpg` for static files in `/public`, or an external URL).
-- `alt`: Descriptive text for accessibility and SEO (required).
-- `width` and `height`: Intrinsic dimensions to prevent layout shift (required for static images, optional for `layout="fill"`).
-- `layout`: Controls rendering behavior (e.g., `fixed`, `intrinsic`, `responsive`, `fill`; default: `intrinsic` in Pages Router).
-- `sizes`: A hint for responsive image widths (e.g., `100vw` or `50vw`) to optimize `srcSet`.
-- `placeholder`: Enables blur-up (`blur`) or empty (`empty`) placeholders (requires `blurDataURL` for blur).
-- `quality`: Controls compression level (1–100, default: 75).
+- **`src`**: Path to the image (e.g., `/images/photo.jpg` for static files in `/public`, or an external URL). Supports relative or absolute URLs.
+- **`alt`**: Descriptive text for accessibility and SEO. Required for screen readers and search engine indexing.
+- **`width`** and **`height`**: Intrinsic image dimensions (in pixels) to prevent layout shifts. Required for static images; optional with `layout="fill"`.
+- **`layout`**: Defines rendering behavior:
+  - `fixed`: Fixed-size image, no scaling.
+  - `intrinsic`: Scales to fit within specified `width` and `height` (default in Pages Router).
+  - `responsive`: Scales fluidly based on viewport, requires `sizes`.
+  - `fill`: Fills parent container, often used with `objectFit`.
+- **`sizes`**: A string (e.g., `100vw`, `50vw`, or `(max-width: 768px) 100vw, 50vw`) guiding responsive image widths for `srcSet` optimization.
+- **`placeholder`**: Visual loading effect:
+  - `blur`: Displays a blurred low-res preview (requires `blurDataURL`).
+  - `empty`: No placeholder (default).
+- **`quality`**: Compression level for output images (1–100, default: 75). Higher values increase file size but improve visual fidelity.
+
+#### **Determining Render Size of Image Components**
+
+The rendered size of a Next.js `Image` component is influenced by the `layout` mode, `width` and `height` props, `sizes` prop, parent container's CSS, and viewport size.
+
+| **Layout**   | **What Defines Rendered Size**                                                                                              | **Role of `width`/`height`**                                                              | **Role of `sizes`**                                       |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `fixed`      | `width` and `height` props (exact pixels)                                                                                   | Sets exact size                                                                           | Not used (no `srcSet` scaling)                            |
+| `intrinsic`  | Up to `width`/`height` (max size), scales down to fit parent container’s width or CSS constraints (e.g., `max-width: 100%`) | Sets max size and aspect ratio; image shrinks proportionally if parent or CSS limits size | Optional (hints display width for `srcSet` optimization)  |
+| `responsive` | Viewport or parent size, scaled per aspect ratio                                                                            | Sets aspect ratio                                                                         | Required (specifies display width for `srcSet` selection) |
+| `fill`       | Parent container’s CSS dimensions                                                                                           | Optional (sets aspect ratio)                                                              | Optional (rarely used for `srcSet` optimization)          |
+
+_**Note**: The `sizes` prop is a hint provided by the developer/designer based on the understanding of the design’s layout mechanics, to inform the browser of the expected image display width relative to the viewport. It guides the browser’s runtime selection of the most appropriate image from the `srcSet` for optimal performance and quality, but does not control the actual rendered size, which depends on the `layout` mode, `width` and `height` props, parent container CSS, and viewport size, as detailed in the table above._
+
+**Example**: In a responsive blog layout, an image spans the full viewport on mobile (≤ 768px), 75% of the viewport on tablet (769px–1023px), and 33% on desktop (≥ 1024px). The `sizes` prop uses media queries to reflect these breakpoints:
+
+```jsx
+<Image
+  src="/blog-image.jpg"
+  layout="responsive"
+  width={800}
+  height={600}
+  sizes="(max-width: 768px) 100vw, (max-width: 1023px) 75vw, 33vw"
+/>
+```
+
+...translates by NextJS automatically to the following:
+
+```html
+<img
+  src="/_next/image?url=/images/image.jpg&w=800&q=75"
+  srcset="
+    /_next/image?url=/images/image.jpg&w=320&q=75 320w,
+    /_next/image?url=/images/image.jpg&w=640&q=75 640w,
+    /_next/image?url=/images/image.jpg&w=960&q=75 960w
+  "
+  sizes="(max-width: 768px) 100vw, (max-width: 1023px) 75vw, 33vw"
+  width="800"
+  height="600"
+  style="width: 100%; height: auto;"
+  alt="Responsive image"
+/>
+```
+
+#### **Automatic SrcSet Generation by Next.js**
+
+This table outlines when `srcSet` images are generated for the `next/image` component in Next.js, detailing the timing and process for different rendering methods (SSG, ISR, SSR, CSR) and image sources (static in `/public`, external).
+
+#### Table: When `srcSet` Images Are Generated
+
+| **Rendering Method**                      | **Static Images (in `/public`)**                                                                                                     | **External Images (remote URL)**                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Static Site Generation (SSG)**          | **When**: Build-time<br>**Details**: `next build` processes `/public` images, generating `srcSet` (e.g., 320w, 640w) based on props. | **When**: Runtime (on-demand)<br>**Details**: Optimized on first request, needs `images.domains` in `next.config.js`. |
+| **Incremental Static Regeneration (ISR)** | **When**: Build-time + On-demand<br>**Details**: Build-time for initial pages; on-demand during revalidation for new/updated images. | **When**: Runtime (on-demand)<br>**Details**: Optimized on request or revalidation, requires `images.domains`.        |
+| **Server-Side Rendering (SSR)**           | **When**: Runtime (on-demand)<br>**Details**: Generated per request for `/public` images due to dynamic rendering.                   | **When**: Runtime (on-demand)<br>**Details**: Fetched and optimized per request, needs `images.domains`.              |
+| **Client-Side Rendering (CSR)**           | **When**: Runtime (on-demand)<br>**Details**: Generated when component renders in browser, requested from Next.js server.            | **When**: Runtime (on-demand)<br>**Details**: Optimized on component load, requires `images.domains`.                 |
+
+- **Static Images**: Located in `/public` (e.g., `/public/images/photo.jpg`). Optimized at build-time for SSG/ISR (initial build); runtime for SSR/CSR due to dynamic rendering.
+- **External Images**: Remote URLs (e.g., `https://example.com/image.jpg`). Always optimized at runtime, requiring `images.domains` in `next.config.js`.
+- **Caching**: All `srcSet` images are cached in `.next/cache/images` or edge cache (e.g., Vercel) after generation, cleared on new builds/deployments.
+- **Custom Loaders**: Third-party services (e.g., Cloudinary) handle generation at runtime, bypassing Next.js caching.
+- **Resolutions**: `srcSet` widths (e.g., 320w, 640w) are based on image size and device needs, consistent across methods.
+
+#### Deployment Considerations for Runtime (On-Demand) `srcSet` Generation
+
+- **Hosting Platform Support**
+
+  - **Vercel**: Native support with edge caching; deploy via CLI/Git, no extra setup.
+  - **Non-Vercel**: Requires Node.js server for image processing; static hosts (e.g., Netlify) need custom loader (e.g., Cloudinary). Ensure runtime support for `/_next/image`.
+
+- **Configuration in `next.config.js`**
+
+  - **External Domains**: List production domains in `images.domains` or `remotePatterns` (e.g., `domains: ['example.com']`). Use HTTPS-only patterns for security.
+  - **Formats**: Set `images.formats: ['image/webp', 'image/avif']` for modern formats; test browser compatibility.
+  - **Custom Loader**: Configure `images.loader` (e.g., Cloudinary) with API credentials; verify rate limits.
+
+- **Caching and CDN Integration**
+
+  - **Caching**: Images cached in `.next/cache/images` or edge cache (Vercel). Use CDN (e.g., Cloudflare) for non-Vercel hosts with `Cache-Control: max-age=31536000`.
+  - **Invalidation**: Redeploy or clear cache for updated images; test post-deployment.
+
+- **Network and Latency**
+  - **External Images**: Ensure remote hosts are reliable, CORS-compliant, low-latency. Test URLs in production.
+  - **Static Images**: Optimize (e.g., pre-compress) in `/public` to reduce processing time. Consider CDN-hosted images for faster runtime fetching.
 
 **Use Case:**
 
@@ -1128,6 +1266,31 @@ export default function Home() {
 }
 ```
 
+- **Dynamic Image Example**
+
+```javascript
+// app/post/[id]/page.js (App Router)
+import Image from "next/image";
+import { fetchPostFromCMS } from "@/lib/cms";
+
+export default async function Post({ params }) {
+  const post = await fetchPostFromCMS(params.id); // Returns { title, image: { url, width, height, alt } }
+  return (
+    <div>
+      <h1>{post.title}</h1>
+      <Image
+        src={post.image.url}
+        alt={post.image.alt}
+        width={post.image.width}
+        height={post.image.height}
+        layout="responsive"
+        sizes="(max-width: 768px) 100vw, 50vw"
+      />
+    </div>
+  );
+}
+```
+
 **Notes:**
 
 - Static images must be placed in the `/public` directory (e.g., `/public/images/team.jpg`) and referenced without the `/public` prefix (see [Section 8.4](#84-static-file-serving)).
@@ -1152,22 +1315,23 @@ export default function Home() {
 - **Marketing Pages:** Display full-width hero images in SSG pages with `layout="fill"` and `sizes="100vw"` for responsive performance.
 - **Dashboards:** Optimize small icons or avatars in CSR dashboards with `layout="fixed"` for minimal bandwidth usage.
 
-### 8.4 Static File Serving
+#### 8.4 Static File Serving
 
-**Purpose:** Next.js Pages Router enables static file serving from the `/public` directory, allowing developers to deliver assets like images, fonts, JSON files, or other resources efficiently. These files are accessible via URL paths and integrate with all rendering methods (SSR, SSG, ISR, CSR), complementing features like `next/image` (see [Section 8.3](#83-image-optimization-with-nextimage)) for optimized asset delivery.
+Next.js Pages Router enables static file serving from the `/public` directory, allowing developers to deliver assets like images, fonts, SVGs, videos, JSON files, or PDFs efficiently. These files are accessible via URL paths and integrate with all rendering methods (SSR, SSG, ISR, CSR), complementing features like [`next/image`](#83-image-optimization-with-nextimage) for optimized asset delivery.
 
 **Key Features:**
 
-- **Simple File Access:** Files in `/public` are served at the root URL (e.g., `/public/images/logo.png` is accessible as `/images/logo.png`).
-- **Static Asset Delivery:** Assets are served directly by the Next.js server or CDN (e.g., Vercel), with caching support for performance.
-- **Build-Time Inclusion:** Files in `/public` are included in the build output, ensuring availability for static (SSG, ISR) and dynamic (SSR, CSR) pages.
-- **No Processing:** Unlike pages or API routes, static files are served as-is, without server-side processing.
+- **Simple File Access**: Files in `/public` are served at the root URL (e.g., `/public/images/logo.png` is accessible as `/images/logo.png`).
+- **Static Asset Delivery**: Assets are served directly by the Next.js server or CDN (e.g., Vercel), with caching support for performance.
+- **Build-Time Inclusion**: Files in `/public` are included in the build output for SSG/ISR, ensuring availability for static pages, and accessed at runtime for SSR/CSR.
+- **No Processing**: Static files are served as-is, without server-side processing, unlike pages or API routes.
 
-**Use Case:**
+**Use Cases:**
 
-- Serving images for `next/image` components in SSG or ISR pages (e.g., blog post thumbnails).
-- Providing downloadable resources like PDFs or JSON data in SSR pages.
-- Including global assets like fonts or favicons for all rendering methods.
+- Serving images for [`next/image`](#83-image-optimization-with-nextimage) in SSG or ISR pages (e.g., blog thumbnails).
+- Providing downloadable resources like PDFs or CSVs in SSR pages (e.g., product brochures).
+- Including global assets like fonts, favicons, or SVGs for branding in all rendering methods.
+- Serving configuration JSON or video files for CSR dashboards or media-heavy pages.
 
 **Examples:**
 
@@ -1182,22 +1346,6 @@ export default function About() {
     <div>
       <h1>About Us</h1>
       <Image src="/images/team.jpg" alt="Team photo" width={800} height={600} />
-    </div>
-  );
-}
-```
-
-- **Serving a Downloadable PDF:**
-
-```javascript
-// pages/resources.js
-export default function Resources() {
-  return (
-    <div>
-      <h1>Resources</h1>
-      <a href="/documents/guide.pdf" download>
-        Download Guide
-      </a>
     </div>
   );
 }
@@ -1222,22 +1370,77 @@ export default function Dashboard() {
 }
 ```
 
+-**Serving a Downloadable PDF:**
+
+```javascript
+// pages/resources.js
+export default function Resources() {
+  return (
+    <div>
+      <h1>Resources</h1>
+      <a href="/documents/guide.pdf" download>
+        Download Guide
+      </a>
+    </div>
+  );
+}
+```
+
+-**Serving a JSON File for Client-Side Fetching:**
+
+```javascript
+// pages/dashboard.js
+import { useState, useEffect } from "react";
+
+export default function Dashboard() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch("/data/config.json")
+      .then((res) => res.json())
+      .then((data) => setData(data))
+      .catch(() => setData({ error: "Config not found" }));
+  }, []);
+
+  return <div>{data ? data.message : "Loading..."}</div>;
+}
+```
+
+- **Serving a Versioned SVG for Cache Busting:**
+
+```javascript
+// pages/home.js
+import Image from "next/image";
+
+export default function Home() {
+  return (
+    <div>
+      <h1>Welcome</h1>
+      <Image src="/icons/logo-v2.svg" alt="Logo" width={100} height={100} />
+    </div>
+  );
+}
+```
+
 **Notes:**
 
 - Place static files in the `/public` directory at the project root (e.g., `/public/images/team.jpg`).
 - URLs omit the `/public` prefix (e.g., use `/images/team.jpg`, not `/public/images/team.jpg`).
-- Static files are not processed or transformed by Next.js; use `next/image` for image optimization (see [Section 8.3](#83-image-optimization-with-nextimage)).
-- For SSG/ISR, static files are bundled at build time or regeneration, while SSR/CSR accesses them at runtime.
-- Avoid storing sensitive data in `/public`, as files are publicly accessible unless restricted by server configuration (e.g., Vercel’s access controls).
+- Static files are not processed or transformed; use [`next/image`](#83-image-optimization-with-nextimage) for image optimization.
+- For SSG/ISR, static files are bundled at build time or during regeneration; SSR/CSR accesses them at runtime.
+- Avoid storing sensitive data in `/public`, as files are publicly accessible unless restricted by server configuration (e.g., Vercel’s access controls or `.htaccess`).
+- On static hosts (e.g., Netlify), ensure `/public` files are included in the build output; Node.js servers or CDNs (e.g., Vercel) handle runtime serving.
 
 **Best Practices:**
 
-- Organize `/public` with clear subdirectories (e.g., `/public/images`, `/public/documents`) for maintainability.
-- Use `next/image` for images instead of direct `<img>` tags to leverage optimization (see [Section 8.3](#83-image-optimization-with-nextimage)).
-- Set appropriate cache headers (e.g., `Cache-Control: public, max-age=31536000`) in deployment (e.g., Vercel) for static assets to improve performance.
-- Test static file accessibility in production to ensure correct paths and availability.
-- Minimize the number of static files to reduce build size, especially for SSG/ISR deployments.
-- Use versioned filenames (e.g., `logo-v2.png`) or query strings for cache busting when updating assets.
+- **Organize Files**: Use clear subdirectories (e.g., `/public/images`, `/public/documents`, `/public/assets`) for maintainability.
+- **Optimize Images**: Use [`next/image`](#83-image-optimization-with-nextimage) instead of `<img>` tags for images to leverage optimization.
+- **Set Cache Headers**: Configure `Cache-Control: public, max-age=31536000` in deployment (e.g., Vercel or Cloudflare) for static assets to improve performance.
+- **Handle Errors**: Implement fallbacks for missing files (e.g., default image or error message) to enhance user experience.
+- **Test Accessibility**: Verify file paths in production to ensure correct serving and CORS compliance for external CDNs.
+- **Minimize Build Size**: Limit the number of static files to reduce SSG/ISR build size, especially for large image sets.
+- **Use Versioned Assets**: Employ versioned filenames (e.g., `logo-v2.png`) or query strings (e.g., `logo.png?v=2`) for cache busting when updating assets.
+- **Secure Sensitive Files**: Restrict access to sensitive `/public` files using server rules (e.g., Vercel’s `vercel.json` or `.htaccess`) or move them to API routes.
 
 **Use Cases in Context:**
 
@@ -1258,12 +1461,48 @@ export default function Dashboard() {
 - **Test Client-Side Behavior:** Customizations in `_app.js` (e.g., route change handlers) rely on client-side JavaScript, so test with JavaScript disabled to ensure SSR/SSG fallback works.
 - **Use TypeScript for Safety:** Define prop types for `_app.js` (e.g., `AppProps`) and `_document.js` to catch errors early, especially when passing `pageProps`.
 
-### 8.4 Use Cases in Context
+### 8.6 Use Cases in Context
 
-- **SEO Optimization:** Use `_document.js` to add Open Graph or Twitter Card meta tags for blog posts (SSG) or product pages (SSR).
-- **Consistent UI:** Use `_app.js` to apply a global layout for static marketing pages (SSG) or dynamic dashboards (CSR).
-- **Analytics Tracking:** Implement route change tracking in `_app.js` for dynamic routes (e.g., `[slug].js`) or catch-all routes (e.g., `[...category].js`).
-- **Theming:** Wrap pages in `_app.js` with a `ThemeProvider` to ensure consistent styling across nested dynamic routes (e.g., `[category]/[id].js`).
+The following use cases demonstrate how to apply [`_document.js`](#81-customizing-_documentjs), [`_app.js`](#82-customizing-_appjs), [`next/image`](#83-image-optimization-with-nextimage), and [static file serving](#84-static-file-serving) in real-world Next.js applications, integrating with rendering methods (SSR, SSG, ISR, CSR) and routing patterns (static, dynamic, catch-all).
+
+1. **SEO Optimization ([8.1](#81-customizing-_documentjs))**:
+
+   - **Scenario**: Add Open Graph meta tags in `_document.js` for SSG blog posts or SSR product pages to improve social media sharing.
+   - **Rendering/Routing**: SSG for `/blog`, SSR for `/products/[id]`.
+
+2. **Consistent UI with Global Layout ([8.2](#82-customizing-_appjs))**:
+
+   - **Scenario**: Use `_app.js` to apply a global layout (e.g., navbar, footer) for static marketing pages or dynamic dashboards.
+   - **Rendering/Routing**: SSG for `/about`, CSR for `/dashboard/[id]`.
+
+3. **Analytics Tracking with Route Changes ([8.2](#82-customizing-_appjs))**:
+
+   - **Scenario**: Track page views in `_app.js` for dynamic or catch-all routes using `router.events`.
+   - **Rendering/Routing**: SSR for `[slug].js`, ISR for `[...category].js`.
+
+4. **Theming with Global Styles ([8.2](#82-customizing-_appjs))**:
+
+   - **Scenario**: Wrap pages in `_app.js` with a `ThemeProvider` for consistent styling across nested dynamic routes.
+   - **Rendering/Routing**: SSR for `[category]/[id].js`.
+
+5. **Optimized Product Images ([8.3](#83-image-optimization-with-nextimage))**:
+
+   - **Scenario**: Use `next/image` with `layout="responsive"` for product images in e-commerce, optimizing load times.
+   - **Rendering/Routing**: ISR for `/products/[id]`.
+
+6. **Lazy-Loaded Blog Images ([8.3](#83-image-optimization-with-nextimage))**:
+
+   - **Scenario**: Apply `next/image` with `placeholder="blur"` for blog post images to enhance SSG page performance.
+   - **Rendering/Routing**: SSG for `/posts/[slug]`.
+
+7. **Downloadable Resources ([8.4](#84-static-file-serving))**:
+
+   - **Scenario**: Serve PDFs from `/public/documents` for product brochures in SSR product pages.
+   - **Rendering/Routing**: SSR for `/products/[id]`.
+
+8. **Static Assets for Branding ([8.4](#84-static-file-serving))**:
+   - **Scenario**: Include favicons or fonts from `/public/assets` in SSG marketing pages, referenced in `_document.js`.
+   - **Rendering/Routing**: SSG for `/about`.
 
 ## License
 
